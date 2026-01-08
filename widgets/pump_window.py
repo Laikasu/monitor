@@ -74,6 +74,6 @@ class PumpWindow(QDockWidget):
     def clean(self):
         ports = set(int(i) for i in self.clean_ports.text())
         ports.discard(1)
-        ports.discard(7)
+        ports.discard(8)
         ports.discard(0)
         self.start_clean.emit(list(ports))
