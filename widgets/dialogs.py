@@ -1,6 +1,6 @@
-from PySide6.QtCore import QRect, QMargins, Qt, QPoint, Signal
-from PySide6.QtGui import QPixmap, QImage, QPen, QBrush
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsRectItem, QDialog, QFormLayout, QSpinBox, QDoubleSpinBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialogButtonBox, QDockWidget, QWidget
+from PySide6.QtCore import QRect, QMargins, Qt, QPoint, Signal, QRegularExpression
+from PySide6.QtGui import QPixmap, QImage, QPen, QBrush, QRegularExpressionValidator
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsRectItem, QDialog, QFormLayout, QSpinBox, QDoubleSpinBox, QVBoxLayout, QHBoxLayout, QPushButton, QDialogButtonBox, QDockWidget, QWidget, QCheckBox, QLineEdit
 
 import numpy as np
 
@@ -58,6 +58,32 @@ class SweepDialog(QDialog):
     
     def get_values(self):
         return self.start.value(), self.end.value(), self.number.value()
+    
+class MediaSweepDialog(QDialog):
+    def __init__(self, title: str):
+        super().__init__()
+        self.setWindowTitle(title)
+
+        # Media
+        self.media = QLineEdit()
+        validator = QRegularExpressionValidator(QRegularExpression(r"^\d*$"))
+        self.media.setValidator(validator)
+
+        layout = QFormLayout()
+        layout.addRow("Media", self.media)
+
+
+        self.button_box = QDialogButtonBox( QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel, self)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+
+        dialog_layout = QVBoxLayout()
+        dialog_layout.addLayout(layout)
+        dialog_layout.addWidget(self.button_box)
+        self.setLayout(dialog_layout)
+    
+    def get_values(self):
+        return [int(char) for char in self.media.text()]
 
 class LaserWindow(QDockWidget):
     centerChanged = Signal(float)

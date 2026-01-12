@@ -6,7 +6,7 @@ import os
 import logging
 import numpy as np
 
-from widgets import VideoView, LaserWindow, SweepWindow, SweepDialog, PumpWindow
+from widgets import VideoView, LaserWindow, SweepWindow, SweepDialog, PumpWindow, MediaSweepDialog
 from main_controller import MainController
 import processing as pc
 
@@ -157,6 +157,9 @@ class MainWindow(QMainWindow):
         self.laser_sweep_act = add_action(QAction('Sweep Laser'))
         self.laser_sweep_act.triggered.connect(self.laser_sweep)
 
+        self.media_sweep_act = add_action(QAction('Sweep Media'))
+        self.media_sweep_act.triggered.connect(self.media_sweep)
+
         self.defocus_sweep_act = add_action(QAction('Defocus Sweep'))
         self.defocus_sweep_act.setStatusTip('Perform a focus sweep')
         self.defocus_sweep_act.triggered.connect(self.defocus_sweep)
@@ -223,6 +226,7 @@ class MainWindow(QMainWindow):
         capture_menu.addSeparator()
         capture_menu.addAction(self.defocus_sweep_act)
         capture_menu.addAction(self.laser_sweep_act)
+        capture_menu.addAction(self.media_sweep_act)
         capture_menu.addAction(self.cancel_acquisition_act)
         
 
@@ -374,6 +378,11 @@ class MainWindow(QMainWindow):
         dialog = SweepDialog(title='Laser Sweep Data', limits=(390+band_radius, 850-band_radius, 390+band_radius, 850-band_radius), defaults=(500, 600, 10), unit='nm')
         if dialog.exec():
             self.controller.laser_sweep(*dialog.get_values())
+    
+    def media_sweep(self):
+        dialog = MediaSweepDialog(title='Media sweep')
+        if dialog.exec():
+            self.controller.media_sweep(dialog.get_values())
     
     def defocus_sweep(self):
         dialog = SweepDialog(title='Z Sweep Data', limits=(-10, 10, -10, 10), defaults=(-1, 1, 10), unit='micron')

@@ -160,6 +160,21 @@ class MainController(QObject):
             self.auto_expose()
             self.action(actions)
             self.store_medium_data()
+    
+    def take_media_sweep_const_exposure(self, actions):
+        """Move to medium and then perform next action"""
+
+        input = self.media
+
+        self.pump.wait_till_ready()
+        for medium in input:
+            self.pump.pickup(medium, 60)
+            self.pump.wait_till_ready()
+            self.pump.dispense(self.pump.flowcell, 60)
+            self.pump.wait_till_ready()
+
+            # Auto adjust exposure
+            self.action(actions)
 
     def store_medium_data(self):
         data = np.squeeze(self.photos)
@@ -383,6 +398,32 @@ class MainController(QObject):
             with open(filepath+'.yaml', 'w') as file:
                 yaml.dump(metadata, file)
         self.data_directory = dialog.directory()
+    
+    def media_sweep(self, media):
+        self.media = media
+        self.start_acquisition(self.save_medium_data, self.take_media_sweep_const_exposure, self.take_sequence_avg)
+
+    def save_medium_data(self):
+        dialog = QFileDialog(caption='Save Medium Sweep')
+        dialog.setNameFilter('TIFF image sequence (*.tif)')
+        dialog.setFileMode(QFileDialog.FileMode.AnyFile)
+        dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
+        dialog.setDirectory(self.data_directory)
+        if dialog.exec():
+            filepath = dialog.selectedFiles()[0]
+            filepath = os.path.splitext(filepath)[0]
+            
+            data = np.squeeze(self.photos)
+            shape = np.shape(data)
+            images = data.reshape(len(self.media), self.shot_count+3, *shape[1:])
+            np.save(filepath + '.npy', images)
+            tiff.imwrite(filepath + '.tif', images[:,0])
+
+            metadata = self.generate_metadata()
+            with open(filepath+'.yaml', 'w') as file:
+                yaml.dump(metadata, file)
+        self.data_directory = dialog.directory()
+        self.media = np.array([])
 
 
     def laser_sweep(self, start, stop, num):
